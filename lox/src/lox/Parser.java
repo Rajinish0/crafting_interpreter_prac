@@ -316,12 +316,24 @@ public class Parser {
         if (match(TRUE)) return new Expr.Literal(true);
         if (match(NIL)) return new Expr.Literal(null);
 
+
         if (match(NUMBER, STRING))
             return new Expr.Literal(previous().literal);
         
-        if (match(IDENTIFIER))
-            return new Expr.Variable(previous());
-        
+        if (match(IDENTIFIER)){
+            Token id = previous();
+            if (match(PLUS_PLUS, MINUS_MINUS))
+                return new Expr.PostOp(id, previous());
+            return new Expr.Variable(id);
+        }
+
+        if (match(PLUS_PLUS, MINUS)){
+            Token op = previous();
+            Token id = consume(IDENTIFIER, "Expected a identifier after '"+op.lexeme+"'");
+            return new Expr.PreOp(id, op);
+        }
+            
+
         if (match(LEFT_PAREN)){
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expected ')' after expression");

@@ -2,6 +2,8 @@ package lox;
 
 import lox.Expr.Assignment;
 import lox.Expr.Logical;
+import lox.Expr.PostOp;
+import lox.Expr.PreOp;
 
 class RPNPrinter implements Expr.Visitor<String> {
     String print(Expr expr){
@@ -58,6 +60,18 @@ class RPNPrinter implements Expr.Visitor<String> {
     public String visitLogicalExpr(Logical expr) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitLogicalExpr'");
+    }
+
+    @Override
+    public String visitPostOpExpr(PostOp expr) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitPostOpExpr'");
+    }
+
+    @Override
+    public String visitPreOpExpr(PreOp expr) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitPreOpExpr'");
     }
 
 }

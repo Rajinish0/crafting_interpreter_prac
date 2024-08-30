@@ -14,6 +14,11 @@ public class GenerateAst {
         }
 
         String outputDir = args[0];
+        /*
+         * Storing paren token for Call
+         * to report runtime errors (it's the closing parenthesis)
+         * for function calls
+         */
         defineAst(outputDir, "Expr", Arrays.asList(
             "Binary   : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
@@ -21,7 +26,10 @@ public class GenerateAst {
             "Unary    : Token operator, Expr right",
             "Variable : Token name",
             "Assignment : Token identifier, Expr expression",
-            "Logical : Expr left, Token operator, Expr right"
+            "Logical : Expr left, Token operator, Expr right",
+            "PostOp : Token identifier, Token operator",
+            "PreOp : Token identifier, Token operator",
+            "Call : Expr callee, Token paren, List<Expr> arguments"
           ));
 
         /* 

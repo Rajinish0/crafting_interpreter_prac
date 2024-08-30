@@ -12,6 +12,8 @@ public abstract class Expr{
 		R visitVariableExpr(Variable expr);
 		R visitAssignmentExpr(Assignment expr);
 		R visitLogicalExpr(Logical expr);
+		R visitPostOpExpr(PostOp expr);
+		R visitPreOpExpr(PreOp expr);
 	}
 
 	abstract <R> R accept(Visitor<R> visitor);
@@ -117,6 +119,36 @@ public abstract class Expr{
 		 final Expr left;
 		 final Token operator;
 		 final Expr right;
+	}
+
+	static public class PostOp extends Expr{
+		public PostOp(Token identifier,Token operator){
+			this.identifier = identifier;
+			this.operator = operator;
+		}
+
+		@Override
+		<R> R accept(Visitor<R> visitor){
+			return visitor.visitPostOpExpr(this);
+		}
+
+		 final Token identifier;
+		 final Token operator;
+	}
+
+	static public class PreOp extends Expr{
+		public PreOp(Token identifier,Token operator){
+			this.identifier = identifier;
+			this.operator = operator;
+		}
+
+		@Override
+		<R> R accept(Visitor<R> visitor){
+			return visitor.visitPreOpExpr(this);
+		}
+
+		 final Token identifier;
+		 final Token operator;
 	}
 
 }

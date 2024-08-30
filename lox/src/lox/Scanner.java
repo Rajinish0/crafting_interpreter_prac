@@ -84,8 +84,18 @@ public class Scanner{
             case '}': addToken(RIGHT_BRACE); break;
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
-            case '+': addToken(PLUS); break;
+            case '-': 
+                if (match('-'))
+                    addToken(MINUS_MINUS);
+                else
+                    addToken(MINUS);
+                break;
+            case '+':  
+                if (match('+'))
+                    addToken(PLUS_PLUS);
+                else
+                    addToken(PLUS);
+                break;
             case ';': addToken(SEMI_COLON); break;
             case '*': addToken(STAR); break;
             case '/':

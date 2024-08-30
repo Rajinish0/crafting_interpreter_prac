@@ -161,6 +161,31 @@ public class Interpreter implements Expr.Visitor<Object>,
         return env.get(expr.name);
     }
 
+    @Override
+    public Object visitPreOpExpr(Expr.PreOp expr){
+        Object val = env.get(expr.identifier);
+        checkNumberOperand(expr.operator, val);
+
+        double newVal = (expr.operator.type == PLUS_PLUS) ? ((double)(val) + 1)
+                        : ((double)val - 1);
+
+        // env.define(expr.identifier.lexeme, newVal);
+        env.assign(expr.identifier, newVal);
+        return newVal;
+    }
+
+    @Override
+    public Object visitPostOpExpr(Expr.PostOp expr){
+        Object val = env.get(expr.identifier);
+        checkNumberOperand(expr.operator, val);
+
+        double newVal = (expr.operator.type == PLUS_PLUS) ? ((double)(val) + 1)
+                        : ((double)val - 1);
+
+        env.assign(expr.identifier, newVal);
+        return val;
+    }
+
     /* 
      * instead of returning true or false we re retuning the objects
      * this is to make it similar to javascript and python
