@@ -35,6 +35,7 @@ public class Interpreter implements Expr.Visitor<Object>,
     // private static HashMap<Object, Object> variables = new HashMap<>();
     final Environment globals = new Environment();
     private Environment env = globals;
+    private final HashMap<Expr, Integer> locals = new HashMap<>();
 
     public Interpreter(){
         // std library functions 
@@ -96,6 +97,11 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     private Object evaluate(Expr expr){
         return expr.accept(this);
+    }
+
+    public void resolve(Expr expr, int depth){
+        locals.put(expr, depth);
+        return;
     }
 
     private void execute(Stmt statement){
@@ -194,31 +200,52 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitVariableExpr(Variable expr){
         // return variables.get(expr.name.literal);
-        return env.get(expr.name);
+        // return env.get(expr.name);
+        return lookUpVariable(expr.name, expr);
+    }
+
+    private Object lookUpVariable(Token name, Expr expr){
+        Integer dist = locals.get(expr);
+        if (dist != null)
+            return env.getAt(dist, name.lexeme);
+        else
+            return globals.get(name);
     }
 
     @Override
     public Object visitPreOpExpr(Expr.PreOp expr){
-        Object val = env.get(expr.identifier);
+        // Object val = env.get(expr.identifier);
+        Object val = lookUpVariable(expr.identifier, expr);
         checkNumberOperand(expr.operator, val);
 
         double newVal = (expr.operator.type == PLUS_PLUS) ? ((double)(val) + 1)
                         : ((double)val - 1);
 
         // env.define(expr.identifier.lexeme, newVal);
-        env.assign(expr.identifier, newVal);
+        Integer dist = locals.get(expr);
+        if (dist != null)
+            env.assignAt(dist, expr.identifier, newVal);
+        else
+            globals.assign(expr.identifier, newVal);
+        // env.assignAt(null, null, val);
         return newVal;
     }
 
     @Override
     public Object visitPostOpExpr(Expr.PostOp expr){
-        Object val = env.get(expr.identifier);
+        // Object val = env.get(expr.identifier);
+        Object val = lookUpVariable(expr.identifier, expr);
         checkNumberOperand(expr.operator, val);
 
         double newVal = (expr.operator.type == PLUS_PLUS) ? ((double)(val) + 1)
                         : ((double)val - 1);
-
-        env.assign(expr.identifier, newVal);
+        
+        Integer dist = locals.get(expr);
+        if (dist != null)
+            env.assignAt(dist, expr.identifier, newVal);
+        else
+            globals.assign(expr.identifier, newVal);
+        // env.assign(expr.identifier, newVal);
         return val;
     }
 
@@ -289,7 +316,11 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitAssignmentExpr(Expr.Assignment expr) {
         Object e = evaluate(expr.expression);
-        env.assign(expr.identifier, e);
+        Integer dist = locals.get(expr);
+        if (dist != null)
+            env.assignAt(dist, expr.identifier, e);
+        else
+            globals.assign(expr.identifier, e);
         return e;
     }
 
@@ -322,7 +353,6 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Void visitFunctionStmt(Stmt.Function funcStmt){
-        
         LoxFunction func = new LoxFunction(funcStmt, new Environment(this.env));
         env.define(funcStmt.name.lexeme, func);
         return null;
