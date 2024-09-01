@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-    private final Map<String, Object> variables = new HashMap<>();   
+    private final Map<String, Object> variables = new HashMap<>();
+   
     final Environment parentEnv;
 
     public void define(String name, Object value){
@@ -17,6 +18,17 @@ public class Environment {
 
     public Environment(Environment parentEnv){
         this.parentEnv = parentEnv;
+    }
+
+    public Environment deepCopy(){
+        Environment pEnv = null;
+        if (parentEnv != null)
+            pEnv = parentEnv.deepCopy();
+        Environment newEnv = new Environment(pEnv);
+        for (Map.Entry<String, Object> entry : variables.entrySet()){
+            newEnv.variables.put(entry.getKey(), entry.getValue());
+        }
+        return newEnv;
     }
 
     public Object get(Token name){

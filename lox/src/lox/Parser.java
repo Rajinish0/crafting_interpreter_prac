@@ -100,6 +100,10 @@ public class Parser {
             return ifStatement();
         else if (match(WHILE))
             return whileStatement();
+        else if (match(FN))
+            return functionStatement();
+        else if (match(RETURN))
+            return returnStatement();
         else if (match(FOR))
             return forStatement();
         else
@@ -110,6 +114,43 @@ public class Parser {
         Expr expr = expression();
         consume(SEMI_COLON, "Expected ; after print statement");
         return new Stmt.Print(expr);
+    }
+
+    private Stmt functionStatement(){
+        Token name = consume(IDENTIFIER, "Expected identifier after fn");
+        consume(LEFT_PAREN, "Expected '(' after function identifier");
+        List<Token> params = new ArrayList<>();
+        if (!check(RIGHT_PAREN)){
+            do {
+                if (params.size() >= 255)
+                    throw error(peek(), "Max number params is: 255");
+                params.add(consume(IDENTIFIER, "Expected identifier for param"));
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expected ')' after params");
+        consume(LEFT_BRACE, "Expected '{' for function body");
+        List<Stmt> stmts = block();
+
+        return new Stmt.Function(name, params, stmts);
+    }
+
+    private Stmt returnStatement(){
+        Token returnKW = previous();
+        Expr val = null;
+        if (!check(SEMI_COLON))
+            val = expression();
+        consume(SEMI_COLON, "Expected ';' after return");
+
+        return new Stmt.Return(returnKW, val);
+    }
+
+    private List<Stmt> block(){
+        List<Stmt> statements = new ArrayList<>();
+        while (!check(RIGHT_BRACE) && !isAtEnd())
+            statements.add(declaration());
+
+        consume(RIGHT_BRACE, "Expected '}' after block");
+        return statements;
     }
 
     private Stmt ifStatement(){
@@ -181,6 +222,21 @@ public class Parser {
 
         return body;
     }
+
+    // private Stmt functionStatement(){
+    //     Expr expr = expression();
+    //     Token name = null;
+    //     Token paren = consume(LEFT_PAREN, "'(' expected after function name");
+    //     if (expr instanceof Expr.Variable)
+    //         name = ((Expr.Variable)expr).name;
+    //     else
+    //         throw error(paren, "Function name is not a variable");
+    //     List<Expr> args = arguments();
+    //     consume(RIGHT_PAREN, "')' expected after arguments");
+    //     Stmt functionBlock = blockStatement();
+
+    //     return Stmt.Function(name, args, functionBlock);
+    // }
 
     private Stmt blockStatement(){
         /* 
@@ -305,7 +361,30 @@ public class Parser {
     private Expr unary() {
         if (match(EXCLAM, MINUS))
             return new Expr.Unary(previous(), unary());
-        return primary();
+        return call();
+    }
+
+    private Expr call(){
+        Expr expr = primary();
+        while (match(LEFT_PAREN)){
+            List<Expr> args = arguments();
+            Token paren = consume(RIGHT_PAREN, "Expected ')' at the end of function call");
+            expr = new Expr.Call(expr, paren, args);
+        }
+        return expr;
+    }
+
+    private List<Expr> arguments(){
+        List<Expr> args = new ArrayList<>();
+        if (!check(RIGHT_PAREN)){
+            do {
+                if (args.size() >= 255)
+                    error(peek(), "Functions can't have more than 255 arguments.");
+                args.add(expression());
+            } while (match(COMMA)); 
+        }
+
+        return args;
     }
 
     private Expr primary(){

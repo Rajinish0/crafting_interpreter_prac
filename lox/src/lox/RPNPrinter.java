@@ -1,6 +1,7 @@
 package lox;
 
 import lox.Expr.Assignment;
+import lox.Expr.Call;
 import lox.Expr.Logical;
 import lox.Expr.PostOp;
 import lox.Expr.PreOp;
@@ -72,6 +73,12 @@ class RPNPrinter implements Expr.Visitor<String> {
     public String visitPreOpExpr(PreOp expr) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitPreOpExpr'");
+    }
+
+    @Override
+    public String visitCallExpr(Call expr) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitCallExpr'");
     }
 
 }

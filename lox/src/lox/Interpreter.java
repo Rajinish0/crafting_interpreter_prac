@@ -2,8 +2,11 @@ package lox;
 
 import static lox.TokenType.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 
 import lox.Expr.Assignment;
 import lox.Expr.Binary;
@@ -30,7 +33,40 @@ public class Interpreter implements Expr.Visitor<Object>,
     {
 
     // private static HashMap<Object, Object> variables = new HashMap<>();
-    private Environment env = new Environment();
+    final Environment globals = new Environment();
+    private Environment env = globals;
+
+    public Interpreter(){
+        // std library functions 
+        globals.define("clock", new LoxCallable() {
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments){
+                return (double)System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() { return "<native fn>";}
+        });
+
+        globals.define("input", new LoxCallable() {
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments)
+            {
+                try (Scanner scanner = new Scanner(System.in)) {
+                    return scanner.nextLine();
+                }
+            }
+
+            @Override
+            public String toString() {return "<native fn>";}
+        });
+    }
 
     void interpret(List<Stmt> statements) { 
         try {
@@ -187,9 +223,9 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     /* 
-     * instead of returning true or false we re retuning the objects
+     * instead of returning true or false im retuning the objects
      * this is to make it similar to javascript and python
-     * like null or Object will be Object
+     * like (null or Object) will return Object
     */
     @Override
     public Object visitLogicalExpr(Expr.Logical expr){
@@ -205,6 +241,25 @@ public class Interpreter implements Expr.Visitor<Object>,
                 break;
         }
         return evaluate(expr.right);
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr){
+        Object callee = evaluate(expr.callee);
+
+        if (!(callee instanceof LoxCallable))
+            throw new RuntimeError(expr.paren, "Can only call functions and classes");
+
+        List<Object> args = new ArrayList<>();
+        for (Expr arg : expr.arguments)
+            args.add(evaluate(arg));
+        
+        LoxCallable function = (LoxCallable)callee;
+        if (args.size() != function.arity())
+            throw new RuntimeError(expr.paren, "Function expected '"+ function.arity() + 
+                                   "' arugments, instead got '" + args.size() + "'.");
+
+        return function.call(this, args);
     }
 
     @Override
@@ -265,16 +320,33 @@ public class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    @Override
+    public Void visitFunctionStmt(Stmt.Function funcStmt){
+        
+        LoxFunction func = new LoxFunction(funcStmt, new Environment(this.env));
+        env.define(funcStmt.name.lexeme, func);
+        return null;
+    }
 
-    private void executeBlock(List<Stmt> stmts, Environment newEnv){
-        // Environment prevEnv = this.env;
+    @Override
+    public Void visitReturnStmt(Stmt.Return retStmt){
+        Object val = null;
+
+        if (retStmt.expression != null)
+            val = evaluate(retStmt.expression);
+
+        throw new Return(val);
+    }
+
+    public void executeBlock(List<Stmt> stmts, Environment newEnv){
+        Environment prevEnv = this.env;
         try {
             this.env = newEnv;
             for (Stmt stmt : stmts)
                 execute(stmt);
                 // stmt.accept(this);
         } finally {
-            this.env = newEnv.parentEnv;
+            this.env = prevEnv;
         }
     }
 

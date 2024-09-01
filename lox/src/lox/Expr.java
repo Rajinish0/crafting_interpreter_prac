@@ -14,6 +14,7 @@ public abstract class Expr{
 		R visitLogicalExpr(Logical expr);
 		R visitPostOpExpr(PostOp expr);
 		R visitPreOpExpr(PreOp expr);
+		R visitCallExpr(Call expr);
 	}
 
 	abstract <R> R accept(Visitor<R> visitor);
@@ -149,6 +150,23 @@ public abstract class Expr{
 
 		 final Token identifier;
 		 final Token operator;
+	}
+
+	static public class Call extends Expr{
+		public Call(Expr callee,Token paren,List<Expr> arguments){
+			this.callee = callee;
+			this.paren = paren;
+			this.arguments = arguments;
+		}
+
+		@Override
+		<R> R accept(Visitor<R> visitor){
+			return visitor.visitCallExpr(this);
+		}
+
+		 final Expr callee;
+		 final Token paren;
+		 final List<Expr> arguments;
 	}
 
 }
