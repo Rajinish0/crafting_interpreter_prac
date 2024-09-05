@@ -1,0 +1,58 @@
+class A{
+    method1(){
+        print "Hello";
+        return 1;
+    }
+}
+
+print A().method1();
+var inst1 = A();
+
+inst1.someprop = 2;
+print inst1.someprop;
+
+
+class B{
+	hello(){
+		print "Hello there " + this.name;
+		this.b = "inside box";
+		print this.b;
+	}
+
+	me(){
+		print this;
+	}
+}
+
+
+//THROWS ERROR
+//print(B().method2());
+
+var b = B();
+b.name = "box";
+
+b.hello();
+b.me();
+
+
+//THROWS ERROR
+//print this.hello;
+
+class C{
+	init(a, b, c){
+		this.a = a;
+		this.b = b;
+		this.c = c;
+	}
+
+	printA(){
+		print this.a;
+	}
+}
+
+var c = C(1, 2, 3);
+c.printA();
+print c.b;
+print c.c;
+//THROWS ERROR
+//c.this = "a";

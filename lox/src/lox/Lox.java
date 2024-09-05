@@ -63,6 +63,8 @@ public class Lox {
 		Resolver resolver = new Resolver(interpreter);
 		resolver.resolve(stmts);
 
+		if (hadError) return;
+
 		interpreter.interpret(stmts);
 		// System.out.println(new AstPrinter().print(expr));
 		// for (Token token : tokens)

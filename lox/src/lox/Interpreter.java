@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import lox.Expr.Assignment;
@@ -283,10 +284,36 @@ public class Interpreter implements Expr.Visitor<Object>,
         
         LoxCallable function = (LoxCallable)callee;
         if (args.size() != function.arity())
-            throw new RuntimeError(expr.paren, "Function expected '"+ function.arity() + 
+            throw new RuntimeError(expr.paren, "Expected '"+ function.arity() + 
                                    "' arugments, instead got '" + args.size() + "'.");
 
         return function.call(this, args);
+    }
+
+    @Override
+    public Object visitGetExpr(Expr.Get expr){
+        Object obj = evaluate(expr.object);
+        if (!(obj instanceof LoxInstance))
+            throw new RuntimeError(expr.name, "Cannot access property '" + expr.name.lexeme + "' of a non instance object");
+        return ((LoxInstance) obj).get(expr.name);
+    }
+
+    @Override
+    public Object visitSetExpr(Expr.Set expr){
+        Object obj = evaluate(expr.object);
+        // System.out.println(obj);
+        if (!(obj instanceof LoxInstance))
+            throw new RuntimeError(expr.name, "Only instances can have fields");
+        Object rval = evaluate(expr.value);
+        // does not raise error if there is no requested property, instead it just adds that.
+        ((LoxInstance) obj).set(expr.name, rval);
+        return rval;
+    }
+
+    @Override
+    public Object visitThisExpr(Expr.This expr){
+        Object lv=  lookUpVariable(expr.keyword, expr);
+        return lv;
     }
 
     @Override
@@ -353,8 +380,35 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Void visitFunctionStmt(Stmt.Function funcStmt){
-        LoxFunction func = new LoxFunction(funcStmt, new Environment(this.env));
+        LoxFunction func = new LoxFunction(funcStmt, env, false);
         env.define(funcStmt.name.lexeme, func);
+        return null;
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class clsStmt){
+        env.define(clsStmt.name.lexeme, null);
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Stmt.Function methodDef : clsStmt.methods){
+            methods.put(
+                methodDef.name.lexeme, 
+                new LoxFunction(methodDef, env, 
+                methodDef.name.lexeme.equals(LoxClass.constructorName))
+            );
+        }
+        LoxClass cls = new LoxClass(clsStmt.name.lexeme, methods);
+        env.assign(clsStmt.name, cls);
+        // Environment newEnv = new Environment(this.env);
+        // List<LoxFunction> methods = new ArrayList<>();
+        // for (Stmt.Function method : clsStmt.methods){
+        //     methods.add(
+        //         new LoxFunction(method, newEnv)
+        //     );
+        // }
+
+        // LoxClass cls = new LoxClass(clsStmt, newEnv, methods);
+        // env.define(clsStmt.name.lexeme, cls);
+
         return null;
     }
 

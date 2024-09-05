@@ -20,16 +20,19 @@ public class GenerateAst {
          * for function calls
          */
         defineAst(outputDir, "Expr", Arrays.asList(
-            "Binary   : Expr left, Token operator, Expr right",
-            "Grouping : Expr expression",
-            "Literal  : Object value",
-            "Unary    : Token operator, Expr right",
-            "Variable : Token name",
+       "Binary     : Expr left, Token operator, Expr right",
+            "Grouping   : Expr expression",
+            "Literal    : Object value",
+            "Unary      : Token operator, Expr right",
+            "Variable   : Token name",
             "Assignment : Token identifier, Expr expression",
-            "Logical : Expr left, Token operator, Expr right",
-            "PostOp : Token identifier, Token operator",
-            "PreOp : Token identifier, Token operator",
-            "Call : Expr callee, Token paren, List<Expr> arguments"
+            "Logical    : Expr left, Token operator, Expr right",
+            "PostOp     : Token identifier, Token operator",
+            "PreOp      : Token identifier, Token operator",
+            "Call       : Expr callee, Token paren, List<Expr> arguments",
+            "Get        : Expr object, Token name",
+            "Set        : Expr object, Token name, Expr value",
+            "This       : Token keyword"
           ));
 
         /* 
@@ -43,7 +46,8 @@ public class GenerateAst {
             "If : Expr condition, Stmt thenBranch, Stmt elseBranch",
             "While : Expr condition, Stmt body",
             "Function : Token name, List<Token> params, List<Stmt> body",
-            "Return : Token keyword, Expr expression"
+            "Return : Token keyword, Expr expression",
+            "Class : Token name, List<Stmt.Function> methods"
         ));
     }
 

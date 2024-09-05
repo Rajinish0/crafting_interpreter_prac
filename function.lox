@@ -54,7 +54,7 @@ counter();
 counter();
 
 
-var inp = input();
+//var inp = input();
 
-print("hello " + inp);
+//print("hello " + inp);
 

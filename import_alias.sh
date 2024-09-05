@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 #FOR RUNNING THE PROGRAM (kind of line python3 or python)
 alias jlox="java -cp lox/bin lox.Lox"

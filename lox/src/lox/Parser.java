@@ -10,7 +10,7 @@ import java.util.List;
 
 /* 
  * THIS BUILDS THE AST,
- * I think it should be able to execute statements as the come here
+ * I think it should be able to execute statements as theyy come here
  * but i reckon the AST is a cleaner choice
  * 
  * actually i need the AST because the loops would be a terrible headache without them
@@ -101,11 +101,13 @@ public class Parser {
         else if (match(WHILE))
             return whileStatement();
         else if (match(FN))
-            return functionStatement();
+            return functionStatement("function");
         else if (match(RETURN))
             return returnStatement();
         else if (match(FOR))
             return forStatement();
+        else if (match(CLASS))
+            return classStatement();
         else
             return expressionStatement();
     }
@@ -116,9 +118,9 @@ public class Parser {
         return new Stmt.Print(expr);
     }
 
-    private Stmt functionStatement(){
-        Token name = consume(IDENTIFIER, "Expected identifier after fn");
-        consume(LEFT_PAREN, "Expected '(' after function identifier");
+    private Stmt.Function functionStatement(String type){
+        Token name = consume(IDENTIFIER, "Expected identifier for " + type);
+        consume(LEFT_PAREN, "Expected '(' after " +  type  + " identifier");
         List<Token> params = new ArrayList<>();
         if (!check(RIGHT_PAREN)){
             do {
@@ -128,7 +130,7 @@ public class Parser {
             } while (match(COMMA));
         }
         consume(RIGHT_PAREN, "Expected ')' after params");
-        consume(LEFT_BRACE, "Expected '{' for function body");
+        consume(LEFT_BRACE, "Expected '{' for " + type + " body");
         List<Stmt> stmts = block();
 
         return new Stmt.Function(name, params, stmts);
@@ -223,6 +225,17 @@ public class Parser {
         return body;
     }
 
+    private Stmt classStatement(){
+        Token name = consume(IDENTIFIER, "Expected identifier for class");
+        consume(LEFT_BRACE, "Expected '{' after class identifier");
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!isAtEnd() && !check(RIGHT_BRACE)){
+            methods.add(functionStatement("method"));
+        }
+        consume(RIGHT_BRACE, "Expected '}' after class body");
+        return new Stmt.Class(name, methods);
+    }
+
     // private Stmt functionStatement(){
     //     Expr expr = expression();
     //     Token name = null;
@@ -283,6 +296,11 @@ public class Parser {
             if (lvalue instanceof Expr.Variable){
                 return new Expr.Assignment(((Expr.Variable)(lvalue)).name, 
                                             rvalue);
+            }
+
+            else if (lvalue instanceof Expr.Get){
+                Expr.Get lexpr = (Expr.Get)lvalue;
+                return new Expr.Set(lexpr.object, lexpr.name, rvalue);
             }
             else 
                 throw error(equals, "Assignment target is not a variable");
@@ -366,10 +384,17 @@ public class Parser {
 
     private Expr call(){
         Expr expr = primary();
-        while (match(LEFT_PAREN)){
-            List<Expr> args = arguments();
-            Token paren = consume(RIGHT_PAREN, "Expected ')' at the end of function call");
-            expr = new Expr.Call(expr, paren, args);
+        while (true){
+            if (match(LEFT_PAREN)){
+                List<Expr> args = arguments();
+                Token paren = consume(RIGHT_PAREN, "Expected ')' at the end of function call");
+                expr = new Expr.Call(expr, paren, args);
+            } else if (match(DOT)){
+                Token name = consume(IDENTIFIER, "Expected property name after '.'");
+                expr = new Expr.Get(expr, name);
+            } else {
+                break;
+            }
         }
         return expr;
     }
@@ -398,6 +423,8 @@ public class Parser {
 
         if (match(NUMBER, STRING))
             return new Expr.Literal(previous().literal);
+
+        if (match(THIS)) return new Expr.This(previous());
         
         if (match(IDENTIFIER)){
             Token id = previous();
