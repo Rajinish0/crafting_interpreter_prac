@@ -227,13 +227,18 @@ public class Parser {
 
     private Stmt classStatement(){
         Token name = consume(IDENTIFIER, "Expected identifier for class");
+        Expr.Variable superclass = null;
+        if (match(LESS)){
+            consume(IDENTIFIER, "Expected an identifier for a super class");
+            superclass = new Expr.Variable(previous());
+        }
         consume(LEFT_BRACE, "Expected '{' after class identifier");
         List<Stmt.Function> methods = new ArrayList<>();
         while (!isAtEnd() && !check(RIGHT_BRACE)){
             methods.add(functionStatement("method"));
         }
         consume(RIGHT_BRACE, "Expected '}' after class body");
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, superclass, methods);
     }
 
     // private Stmt functionStatement(){
@@ -425,7 +430,14 @@ public class Parser {
             return new Expr.Literal(previous().literal);
 
         if (match(THIS)) return new Expr.This(previous());
-        
+
+        if (match(SUPER)){
+            Token keyword = previous();
+            consume(DOT, "Expected '.' after super.");
+            Token method = consume(IDENTIFIER, "Expected method after '.'.");
+            return new Expr.Super(keyword, method);
+        }
+
         if (match(IDENTIFIER)){
             Token id = previous();
             if (match(PLUS_PLUS, MINUS_MINUS))
@@ -433,7 +445,7 @@ public class Parser {
             return new Expr.Variable(id);
         }
 
-        if (match(PLUS_PLUS, MINUS)){
+        if (match(PLUS_PLUS, MINUS_MINUS)){
             Token op = previous();
             Token id = consume(IDENTIFIER, "Expected a identifier after '"+op.lexeme+"'");
             return new Expr.PreOp(id, op);

@@ -312,8 +312,20 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Object visitThisExpr(Expr.This expr){
-        Object lv=  lookUpVariable(expr.keyword, expr);
-        return lv;
+        return lookUpVariable(expr.keyword, expr);
+    }
+
+    @Override
+    public Object visitSuperExpr(Expr.Super expr){
+        int dist = locals.get(expr);
+        LoxClass superclass = (LoxClass)env.getAt(dist, "super");
+        LoxInstance obj = (LoxInstance)env.getAt(dist - 1, "this");
+
+        LoxFunction func = superclass.findMethod(expr.method.lexeme);
+        if (func == null){
+            throw new RuntimeError(expr.method, "Cannot find property '" + expr.method.lexeme + "' of class " + superclass + ".");
+        }
+        return func.bind(obj);
     }
 
     @Override
@@ -389,6 +401,19 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Void visitClassStmt(Stmt.Class clsStmt){
         env.define(clsStmt.name.lexeme, null);
         Map<String, LoxFunction> methods = new HashMap<>();
+
+        
+        LoxClass superclass = null;
+        if (clsStmt.superclass != null){
+            Object supercls = evaluate(clsStmt.superclass);
+            if (!(supercls instanceof LoxClass))
+                throw new RuntimeError(clsStmt.superclass.name,
+                                        "Can only inherit from a class");
+            
+            superclass = (LoxClass)supercls;
+            env = new Environment(env);
+            env.define("super", superclass);
+        }
         for (Stmt.Function methodDef : clsStmt.methods){
             methods.put(
                 methodDef.name.lexeme, 
@@ -396,7 +421,12 @@ public class Interpreter implements Expr.Visitor<Object>,
                 methodDef.name.lexeme.equals(LoxClass.constructorName))
             );
         }
-        LoxClass cls = new LoxClass(clsStmt.name.lexeme, methods);
+
+        LoxClass cls = new LoxClass(clsStmt.name.lexeme, superclass, methods);
+
+        if (superclass != null)
+            env = env.parentEnv;
+        //assign in global (or actually more generally parent) environment
         env.assign(clsStmt.name, cls);
         // Environment newEnv = new Environment(this.env);
         // List<LoxFunction> methods = new ArrayList<>();

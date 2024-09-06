@@ -56,3 +56,12 @@ print c.b;
 print c.c;
 //THROWS ERROR
 //c.this = "a";
+
+
+class D{
+	init(a, b, c){
+		return;
+	}
+}
+
+

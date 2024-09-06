@@ -1,0 +1,9 @@
+fn fib(n){
+	if (n < 2) return n;
+	return fib(n - 1) + fib(n-2);
+}
+
+var b = clock();
+print fib(40);
+var a = clock();
+print a - b;

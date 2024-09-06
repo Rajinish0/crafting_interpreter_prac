@@ -11,15 +11,21 @@ public class LoxClass implements LoxCallable
     public final static String constructorName = "init";
 
     final String name;
+    final LoxClass superclass;
+
     Map<String, LoxFunction> methods = new HashMap<>();
 
-    public LoxClass(String name, Map<String, LoxFunction> methods) {
+    public LoxClass(String name, LoxClass superclass, Map<String, LoxFunction> methods) {
         this.name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 
     public LoxFunction findMethod(String name){
-        return methods.get(name);
+        LoxFunction func =  methods.get(name);
+        if (func == null && superclass != null)
+            func = superclass.findMethod(name);
+        return func;
     }
 
     @Override

@@ -1,0 +1,24 @@
+class A{
+	func(){
+		print "I am in A";
+	}
+}
+
+var c = "some string";
+
+class B < A {
+	func(){
+		super.func();
+		print "I am in B";
+
+		//THROWS ERROR 
+		//super.notFunc();
+	}
+}
+
+var b = B();
+b.func();
+
+//THROWS ERROR
+//class B < c {}
+

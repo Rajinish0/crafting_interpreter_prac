@@ -7,6 +7,7 @@ import lox.Expr.Logical;
 import lox.Expr.PostOp;
 import lox.Expr.PreOp;
 import lox.Expr.Set;
+import lox.Expr.Super;
 import lox.Expr.This;
 
 class RPNPrinter implements Expr.Visitor<String> {
@@ -100,6 +101,12 @@ class RPNPrinter implements Expr.Visitor<String> {
     public String visitThisExpr(This expr) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitThisExpr'");
+    }
+
+    @Override
+    public String visitSuperExpr(Super expr) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitSuperExpr'");
     }
 
 }
