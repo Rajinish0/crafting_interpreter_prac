@@ -1,4 +1,5 @@
 *.class
 *.o
 */obj/*
+*/*.exe
 TODO.md
