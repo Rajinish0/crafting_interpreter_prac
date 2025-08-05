@@ -14,9 +14,8 @@ void writeValueArray(ValueArray *array, Value value){
 		int oldCapacity = array->capacity;
 		array->capacity = GROW_CAPACITY(oldCapacity);
 		array->values = GROW_ARRAY(Value, array->values, oldCapacity, array->capacity);
-		array->values[array->count++] = value;
 	}
-	
+	array->values[array->count++] = value;
 }
 
 void freeValueArray(ValueArray *array){

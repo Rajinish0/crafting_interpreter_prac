@@ -34,6 +34,22 @@ int constantInstruction(const char *name, Chunk *chunk, int offset){
 	return offset + 2;
 }
 
+int constantLongInstruction(const char *name, Chunk *chunk, int offset){
+	uint8_t b1 = chunk->code[offset + 1];
+    uint8_t b2 = chunk->code[offset + 2];
+    uint8_t b3 = chunk->code[offset + 3];
+    int constant = (b1 << (8 * 2) ) | (b2 << 8) | (b3); 
+	printf("%-16s %4d '", name, constant);
+	// the actual constant can now be obtained from the table using the index
+	printValue(chunk->constants.values[constant]);
+	printf("'\n");
+
+    printf("DISASSEMBLED IDX %d\n", constant);
+	
+	//consumed 4 bytes
+	return offset + 4;
+}
+
 int disassembleInstruction(Chunk *chunk, int offset){
     printf("%04d ", offset);
 	// if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]) 
@@ -49,6 +65,8 @@ int disassembleInstruction(Chunk *chunk, int offset){
     switch (instruction){
 		case OP_CONSTANT:
 			return constantInstruction("OP_CONSTANT", chunk, offset);
+        case OP_CONSTANT_LONG:
+            return constantLongInstruction("OP_CONSTANT_LONG", chunk, offset);
         case OP_RETURN:
             return simpleInstruction("OP_RETURN", offset);
         default:

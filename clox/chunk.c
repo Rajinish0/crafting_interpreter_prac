@@ -49,6 +49,16 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line)
 
 }
 
+int writeConstant(Chunk *chunk, Value value, int line){
+    writeValueArray(&chunk->constants, value);
+    int idx = (chunk->constants.count - 1);
+    writeChunk(chunk, (idx>>(8 * 2))&0xff, line);
+    writeChunk(chunk, (idx>>(8 * 1))&0xff, line);
+    writeChunk(chunk, (idx>>(8 * 0))&0xff, line);
+    printf("writing %d", idx);
+    return idx;
+}
+
 int addConstant(Chunk *chunk, Value constant){
 	writeValueArray(&chunk->constants, constant);
 	//return idx of insertion
