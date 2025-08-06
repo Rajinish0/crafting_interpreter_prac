@@ -44,7 +44,7 @@ int constantLongInstruction(const char *name, Chunk *chunk, int offset){
 	printValue(chunk->constants.values[constant]);
 	printf("'\n");
 
-    printf("DISASSEMBLED IDX %d\n", constant);
+    // printf("DISASSEMBLED IDX %d\n", constant);
 	
 	//consumed 4 bytes
 	return offset + 4;

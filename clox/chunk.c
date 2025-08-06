@@ -39,7 +39,7 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line)
 
 
     if (chunk->lineCnt == 0 || 
-        line != chunk->lineCnt - 1){
+        line != chunk->lines[chunk->lineCnt - 1]){
         chunk->lines[chunk->lineCnt] = 1;
         chunk->lines[chunk->lineCnt + 1] = line;
         chunk->lineCnt += 2;
@@ -66,6 +66,11 @@ int addConstant(Chunk *chunk, Value constant){
 }
 
 int getLine(Chunk *chunk, int idx){
+    // printf("%s", "getting line");
+    // printf("%s %d\n", "Chunk Line Count", chunk->lineCnt);
+    // printf("%s %d\n", "Chunk Cnt",  chunk->lines[0]);
+    // printf("%s %d\n", "Chunk Line", chunk->lines[1]);
+    // printf("%s %d\n", "IDX", idx);
     int cnt =chunk->lines[0];
     int cInd =2;
     while (idx > cnt && cInd < chunk->lineCnt) {
@@ -73,7 +78,7 @@ int getLine(Chunk *chunk, int idx){
         cInd += 2;
     }
 
-    if (cInd >= chunk->lineCnt) return -1;
+    if (cInd > chunk->lineCnt) return -1;
     return chunk->lines[cInd - 1];
 }
 
